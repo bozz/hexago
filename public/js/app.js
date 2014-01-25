@@ -1,4 +1,6 @@
 
+var $ = require('jquery');
+
 var Hex = function(x, y, size) {
     this.posX = x;
     this.posY = y;
