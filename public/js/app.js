@@ -1,36 +1,6 @@
 
 var $ = require('jquery');
-
-var Hex = function(x, y, size) {
-    this.posX = x;
-    this.posY = y;
-    this.size = size || 40;
-
-    this.draw = function(ctx, fill) {
-        var fill = fill || false,
-            baseAngle = 2 * Math.PI / 6,
-            i, angle, xi, yi;
-
-        ctx.beginPath();
-
-        for(i=0; i<6; i++) {
-            angle = baseAngle * (i+0.5);
-            xi = this.posX + this.size * Math.cos(angle);
-            yi = this.posY + this.size * Math.sin(angle);
-
-            if(i==0) {
-                ctx.moveTo(xi, yi);
-            } else {
-                ctx.lineTo(xi, yi);
-            }
-        }
-
-        ctx.closePath();
-        ctx.stroke();
-    };
-}
-
-
+var Hex = require('./hex.js').Hex;
 
 
 $(function() {
@@ -42,16 +12,26 @@ $(function() {
 
     ctx.canvas.height = canvasHeight;
     ctx.canvas.width = canvasWidth;
-    ctx.fillStyle = '#999999';
-    ctx.strokeStyle = '#000000';
+    ctx.fillStyle = '#aaaaaa';
+    ctx.strokeStyle = '#dfdfdf';
     ctx.lineWidth = 1;
 
-    var xi = 50,
-        size = 40;
-    for(var i=0; i<8; i++) {
-        console.log("xi:", xi);
-        new Hex(xi, 50, size).draw(ctx);
-        xi = xi + size * Math.sqrt(3);
+    var xi = 100,
+        yi = 40,
+        height = 50,
+        heightHalf = 25,
+        hex, even;
+
+    for(var row=0; row<7; row++) {
+        for(var i=0; i<7; i++) {
+            even = i%2 == 0;
+            hex = new Hex(xi, even?yi+heightHalf:yi, height)
+            hex.draw(ctx);
+            // console.log("xi:", xi);
+            xi = xi + hex.edge + hex.pointWidth + 5;
+        }
+        xi = 100;
+        yi = yi + height;
     }
 
     console.log("fin.");
