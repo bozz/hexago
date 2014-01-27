@@ -9114,21 +9114,24 @@ return jQuery;
 },{}],2:[function(require,module,exports){
 
 var $ = require('jquery');
+var SVG = (window.SVG);
 var Hex = require('./hex.js').Hex;
 
 
 $(function() {
 
-    var canvasHeight = 400,
-        canvasWidth = 600,
-        canvas = document.getElementById('canvas'),
-        ctx = canvas.getContext('2d');
+    var svg = SVG('board').size(600, 400);
 
-    ctx.canvas.height = canvasHeight;
-    ctx.canvas.width = canvasWidth;
-    ctx.fillStyle = '#aaaaaa';
-    ctx.strokeStyle = '#dfdfdf';
-    ctx.lineWidth = 1;
+    // var canvasHeight = 400,
+    //     canvasWidth = 600,
+    //     canvas = document.getElementById('canvas'),
+    //     ctx = canvas.getContext('2d');
+
+    // ctx.canvas.height = canvasHeight;
+    // ctx.canvas.width = canvasWidth;
+    // ctx.fillStyle = '#aaaaaa';
+    // ctx.strokeStyle = '#cccccc';
+    // ctx.lineWidth = 1;
 
     var xi = 100,
         yi = 40,
@@ -9140,9 +9143,10 @@ $(function() {
         for(var i=0; i<7; i++) {
             even = i%2 == 0;
             hex = new Hex(xi, even?yi+heightHalf:yi, height)
-            hex.draw(ctx);
+            // hex.draw(ctx);
+            hex.drawSvg(svg);
             // console.log("xi:", xi);
-            xi = xi + hex.edge + hex.pointWidth + 5;
+            xi = xi + hex.edge + hex.pointWidth + 6;
         }
         xi = 100;
         yi = yi + height;
@@ -9153,6 +9157,8 @@ $(function() {
 
 
 },{"./hex.js":3,"jquery":1}],3:[function(require,module,exports){
+
+var SVG = (window.SVG);
 
 var Hex = function(x, y, height) {
     this.posX = x;
@@ -9175,6 +9181,15 @@ var Hex = function(x, y, height) {
     this.vertices.push([x+widthQuarter, y+heightHalf]);
     this.vertices.push([x-widthQuarter, y+heightHalf]);
 
+
+    this.drawSvg = function(svg) {
+        var vertString = "";
+        for(i=0; i<6; i++) {
+            vert = this.vertices[i];
+            vertString += vert[0] + ',' + vert[1] + ' ';
+        }
+        svg.polygon(vertString).fill('none').stroke({ width: 1 })
+    }
 
     this.draw = function(ctx, fill) {
         var fill = fill || false,

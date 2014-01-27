@@ -1,20 +1,23 @@
 
 var $ = require('jquery');
+var SVG = require('svg');
 var Hex = require('./hex.js').Hex;
 
 
 $(function() {
 
-    var canvasHeight = 400,
-        canvasWidth = 600,
-        canvas = document.getElementById('canvas'),
-        ctx = canvas.getContext('2d');
+    var svg = SVG('board').size(600, 400);
 
-    ctx.canvas.height = canvasHeight;
-    ctx.canvas.width = canvasWidth;
-    ctx.fillStyle = '#aaaaaa';
-    ctx.strokeStyle = '#dfdfdf';
-    ctx.lineWidth = 1;
+    // var canvasHeight = 400,
+    //     canvasWidth = 600,
+    //     canvas = document.getElementById('canvas'),
+    //     ctx = canvas.getContext('2d');
+
+    // ctx.canvas.height = canvasHeight;
+    // ctx.canvas.width = canvasWidth;
+    // ctx.fillStyle = '#aaaaaa';
+    // ctx.strokeStyle = '#cccccc';
+    // ctx.lineWidth = 1;
 
     var xi = 100,
         yi = 40,
@@ -26,9 +29,10 @@ $(function() {
         for(var i=0; i<7; i++) {
             even = i%2 == 0;
             hex = new Hex(xi, even?yi+heightHalf:yi, height)
-            hex.draw(ctx);
+            // hex.draw(ctx);
+            hex.drawSvg(svg);
             // console.log("xi:", xi);
-            xi = xi + hex.edge + hex.pointWidth + 5;
+            xi = xi + hex.edge + hex.pointWidth + 6;
         }
         xi = 100;
         yi = yi + height;

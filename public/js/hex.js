@@ -1,4 +1,6 @@
 
+var SVG = require('svg');
+
 var Hex = function(x, y, height) {
     this.posX = x;
     this.posY = y;
@@ -20,6 +22,15 @@ var Hex = function(x, y, height) {
     this.vertices.push([x+widthQuarter, y+heightHalf]);
     this.vertices.push([x-widthQuarter, y+heightHalf]);
 
+
+    this.drawSvg = function(svg) {
+        var vertString = "";
+        for(i=0; i<6; i++) {
+            vert = this.vertices[i];
+            vertString += vert[0] + ',' + vert[1] + ' ';
+        }
+        svg.polygon(vertString).fill('none').stroke({ width: 1 })
+    }
 
     this.draw = function(ctx, fill) {
         var fill = fill || false,
