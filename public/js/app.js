@@ -1,7 +1,7 @@
 
 var $ = require('jquery');
 var SVG = require('svg');
-var Hex = require('./hex.js').Hex;
+var BoardView = require('./BoardView.js').BoardView;
 
 
 $(function() {
@@ -19,24 +19,9 @@ $(function() {
     // ctx.strokeStyle = '#cccccc';
     // ctx.lineWidth = 1;
 
-    var xi = 100,
-        yi = 40,
-        height = 50,
-        heightHalf = 25,
-        hex, even;
+    var boardView = new BoardView(svg, 50);
+    boardView.render();
 
-    for(var row=0; row<7; row++) {
-        for(var i=0; i<7; i++) {
-            even = i%2 == 0;
-            hex = new Hex(xi, even?yi+heightHalf:yi, height)
-            // hex.draw(ctx);
-            hex.drawSvg(svg);
-            // console.log("xi:", xi);
-            xi = xi + hex.edge + hex.pointWidth + 6;
-        }
-        xi = 100;
-        yi = yi + height;
-    }
 
     console.log("fin.");
 });

@@ -9113,52 +9113,103 @@ return jQuery;
 
 },{}],2:[function(require,module,exports){
 
-var $ = require('jquery');
-var SVG = (window.SVG);
-var Hex = require('./hex.js').Hex;
+// using axial coordinates
+var Board = function() {
 
+    this.rows = 6,
+    this.cols = 6,
+    this.colShift = 2, // extra grid columns needed for storage
+    this.grid = [
+        [-1, -1, 0, 0, 0, 0, 0, 0],
+        [-1, -1, 0, 0, 0, 0, 0, 0],
+        [-1, 0, 0, 0, 0, 0, 0, -1],
+        [-1, 0, 0, 0, 0, 0, 0, -1],
+        [0, 0, 0, 0, 0, 0, -1, -1],
+        [0, 0, 0, 0, 0, 0, -1, -1]
+    ];
 
-$(function() {
-
-    var svg = SVG('board').size(600, 400);
-
-    // var canvasHeight = 400,
-    //     canvasWidth = 600,
-    //     canvas = document.getElementById('canvas'),
-    //     ctx = canvas.getContext('2d');
-
-    // ctx.canvas.height = canvasHeight;
-    // ctx.canvas.width = canvasWidth;
-    // ctx.fillStyle = '#aaaaaa';
-    // ctx.strokeStyle = '#cccccc';
-    // ctx.lineWidth = 1;
-
-    var xi = 100,
-        yi = 40,
-        height = 50,
-        heightHalf = 25,
-        hex, even;
-
-    for(var row=0; row<7; row++) {
-        for(var i=0; i<7; i++) {
-            even = i%2 == 0;
-            hex = new Hex(xi, even?yi+heightHalf:yi, height)
-            // hex.draw(ctx);
-            hex.drawSvg(svg);
-            // console.log("xi:", xi);
-            xi = xi + hex.edge + hex.pointWidth + 6;
+    // get grid contents at specified coordinates
+    this.getAt = function(r, q) {
+        var qShifted = q+this.colShift;
+        if(qShifted >= this.cols || qShifted < 0 || r < 0 || r >= this.rows) {
+            return -1;
         }
-        xi = 100;
-        yi = yi + height;
+        return this.grid[r][q];
     }
 
-    console.log("fin.");
-});
+    this.each = function(callback) {
+        var i, j;
+        for(i = 0; i<this.grid.length; i++) {
+            for(j = 0; j<this.grid[i].length; j++) {
+                if(this.grid[i][j] !== -1) {
+                    callback(i-this.colShift, j, this.grid[i][j]);
+                }
+            }
+        }
+    }
 
+    // get neighbors of specified coordinates
+    this.getNeighbors = function(r, q) {
+        // TODO...
+    }
 
-},{"./hex.js":3,"jquery":1}],3:[function(require,module,exports){
+};
 
-var SVG = (window.SVG);
+exports.Board = Board;
+
+},{}],3:[function(require,module,exports){
+
+var Board = require('./Board').Board,
+    Hex = require('./Hex').Hex;
+
+var BoardView = function(svg, hexSize) {
+
+    this.hexSize = hexSize;
+    this.board = new Board();
+
+    this.hexToPixel = function(r, q) {
+        return {
+            x: this.hexSize * 1.5 * q,
+            y: this.hexSize * Math.sqrt(3) * (r + q/2)
+        }
+    }
+
+    this.render = function() {
+        var self = this,
+            coords, hex;
+
+        this.board.each(function(r, q, val) {
+            coords = self.hexToPixel(r, q);
+
+            console.log("coords: ", r, q, coords);
+            hex = new Hex(coords.x, coords.y, self.hexSize);
+            hex.drawSvg(svg);
+        });
+    }
+
+    // var xi = 100,
+    //     yi = 40,
+    //     height = 50,
+    //     heightHalf = 25,
+    //     hex, even;
+
+    //         even = i%2 == 0;
+    //         hex = new Hex(xi, even?yi+heightHalf:yi, height)
+    //         // hex.draw(ctx);
+    //         hex.drawSvg(svg);
+    //         // console.log("xi:", xi);
+    //         xi = xi + hex.edge + hex.pointWidth + 6;
+    //     }
+    //     xi = 100;
+    //     yi = yi + height;
+
+};
+
+exports.BoardView = BoardView;
+
+},{"./Board":2,"./Hex":4}],4:[function(require,module,exports){
+
+// var SVG = require('svg');
 
 var Hex = function(x, y, height) {
     this.posX = x;
@@ -9191,6 +9242,7 @@ var Hex = function(x, y, height) {
         svg.polygon(vertString).fill('none').stroke({ width: 1 })
     }
 
+    // deprecated: canvas draw
     this.draw = function(ctx, fill) {
         var fill = fill || false,
             i, vert;
@@ -9215,4 +9267,34 @@ var Hex = function(x, y, height) {
 
 exports.Hex = Hex;
 
-},{}]},{},[2])
+},{}],5:[function(require,module,exports){
+
+var $ = require('jquery');
+var SVG = (window.SVG);
+var BoardView = require('./BoardView.js').BoardView;
+
+
+$(function() {
+
+    var svg = SVG('board').size(600, 400);
+
+    // var canvasHeight = 400,
+    //     canvasWidth = 600,
+    //     canvas = document.getElementById('canvas'),
+    //     ctx = canvas.getContext('2d');
+
+    // ctx.canvas.height = canvasHeight;
+    // ctx.canvas.width = canvasWidth;
+    // ctx.fillStyle = '#aaaaaa';
+    // ctx.strokeStyle = '#cccccc';
+    // ctx.lineWidth = 1;
+
+    var boardView = new BoardView(svg, 50);
+    boardView.render();
+
+
+    console.log("fin.");
+});
+
+
+},{"./BoardView.js":3,"jquery":1}]},{},[5])

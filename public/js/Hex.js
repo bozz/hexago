@@ -1,5 +1,5 @@
 
-var SVG = require('svg');
+// var SVG = require('svg');
 
 var Hex = function(x, y, height) {
     this.posX = x;
@@ -32,6 +32,7 @@ var Hex = function(x, y, height) {
         svg.polygon(vertString).fill('none').stroke({ width: 1 })
     }
 
+    // deprecated: canvas draw
     this.draw = function(ctx, fill) {
         var fill = fill || false,
             i, vert;
