@@ -9129,12 +9129,12 @@ var Board = function() {
     ];
 
     // get grid contents at specified coordinates
-    this.getAt = function(r, q) {
-        var qShifted = q+this.colShift;
-        if(qShifted >= this.cols || qShifted < 0 || r < 0 || r >= this.rows) {
+    this.getAt = function(q, r) {
+        var rShifted = r+this.colShift;
+        if(rShifted >= this.cols || rShifted < 0 || q < 0 || q >= this.rows) {
             return -1;
         }
-        return this.grid[r][q];
+        return this.grid[q][r];
     }
 
     this.each = function(callback) {
@@ -9142,14 +9142,14 @@ var Board = function() {
         for(i = 0; i<this.grid.length; i++) {
             for(j = 0; j<this.grid[i].length; j++) {
                 if(this.grid[i][j] !== -1) {
-                    callback(i-this.colShift, j, this.grid[i][j]);
+                    callback(j-this.colShift, i, this.grid[i][j]);
                 }
             }
         }
     }
 
     // get neighbors of specified coordinates
-    this.getNeighbors = function(r, q) {
+    this.getNeighbors = function(q, r) {
         // TODO...
     }
 
@@ -9160,17 +9160,24 @@ exports.Board = Board;
 },{}],3:[function(require,module,exports){
 
 var Board = require('./Board').Board,
-    Hex = require('./Hex').Hex;
+    HexView = require('./HexView').HexView;
 
 var BoardView = function(svg, hexSize) {
 
     this.hexSize = hexSize;
     this.board = new Board();
 
+    // hex data
+    this.height = hexSize || 50;
+    this.edge = this.height * 0.5; // ratio 3/5
+    this.pointWidth = this.height * 0.5; // ratio 1/2
+    this.width = this.edge + this.height;
+    this.size = this.width * 0.5;
+
     this.hexToPixel = function(r, q) {
         return {
-            x: this.hexSize * 1.5 * q,
-            y: this.hexSize * Math.sqrt(3) * (r + q/2)
+            x: 50+ this.size * 1.5 * q,
+            y: 50+ this.size * Math.sqrt(3) * (r + q/2)
         }
     }
 
@@ -9182,7 +9189,7 @@ var BoardView = function(svg, hexSize) {
             coords = self.hexToPixel(r, q);
 
             console.log("coords: ", r, q, coords);
-            hex = new Hex(coords.x, coords.y, self.hexSize);
+            hex = new HexView(coords.x, coords.y, self.hexSize);
             hex.drawSvg(svg);
         });
     }
@@ -9207,11 +9214,11 @@ var BoardView = function(svg, hexSize) {
 
 exports.BoardView = BoardView;
 
-},{"./Board":2,"./Hex":4}],4:[function(require,module,exports){
+},{"./Board":2,"./HexView":4}],4:[function(require,module,exports){
 
 // var SVG = require('svg');
 
-var Hex = function(x, y, height) {
+var HexView = function(x, y, height) {
     this.posX = x;
     this.posY = y;
     this.height = height || 50;
@@ -9224,6 +9231,8 @@ var Hex = function(x, y, height) {
     var widthHalf = this.width * 0.5,
         widthQuarter = widthHalf * 0.5,
         heightHalf = this.height * 0.5;
+
+    this.size = widthHalf;
 
     this.vertices.push([x-widthHalf, y]);
     this.vertices.push([x-widthQuarter, y-heightHalf]);
@@ -9265,7 +9274,7 @@ var Hex = function(x, y, height) {
 
 }
 
-exports.Hex = Hex;
+exports.HexView = HexView;
 
 },{}],5:[function(require,module,exports){
 
@@ -9276,7 +9285,7 @@ var BoardView = require('./BoardView.js').BoardView;
 
 $(function() {
 
-    var svg = SVG('board').size(600, 400);
+    var svg = SVG('board').size(800, 600);
 
     // var canvasHeight = 400,
     //     canvasWidth = 600,
@@ -9291,7 +9300,6 @@ $(function() {
 
     var boardView = new BoardView(svg, 50);
     boardView.render();
-
 
     console.log("fin.");
 });

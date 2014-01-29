@@ -13,3 +13,11 @@ canvas {
     display: block;
     margin: 0 auto;
 }
+
+#board polygon {
+    fill: none;
+    pointer-events: all;
+}
+#board polygon:hover {
+    fill: red;
+}

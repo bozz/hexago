@@ -1,7 +1,7 @@
 
 // var SVG = require('svg');
 
-var Hex = function(x, y, height) {
+var HexView = function(x, y, height) {
     this.posX = x;
     this.posY = y;
     this.height = height || 50;
@@ -14,6 +14,8 @@ var Hex = function(x, y, height) {
     var widthHalf = this.width * 0.5,
         widthQuarter = widthHalf * 0.5,
         heightHalf = this.height * 0.5;
+
+    this.size = widthHalf;
 
     this.vertices.push([x-widthHalf, y]);
     this.vertices.push([x-widthQuarter, y-heightHalf]);
@@ -55,4 +57,4 @@ var Hex = function(x, y, height) {
 
 }
 
-exports.Hex = Hex;
+exports.HexView = HexView;

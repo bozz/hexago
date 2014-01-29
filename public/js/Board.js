@@ -15,12 +15,12 @@ var Board = function() {
     ];
 
     // get grid contents at specified coordinates
-    this.getAt = function(r, q) {
-        var qShifted = q+this.colShift;
-        if(qShifted >= this.cols || qShifted < 0 || r < 0 || r >= this.rows) {
+    this.getAt = function(q, r) {
+        var rShifted = r+this.colShift;
+        if(rShifted >= this.cols || rShifted < 0 || q < 0 || q >= this.rows) {
             return -1;
         }
-        return this.grid[r][q];
+        return this.grid[q][r];
     }
 
     this.each = function(callback) {
@@ -28,14 +28,14 @@ var Board = function() {
         for(i = 0; i<this.grid.length; i++) {
             for(j = 0; j<this.grid[i].length; j++) {
                 if(this.grid[i][j] !== -1) {
-                    callback(i-this.colShift, j, this.grid[i][j]);
+                    callback(j-this.colShift, i, this.grid[i][j]);
                 }
             }
         }
     }
 
     // get neighbors of specified coordinates
-    this.getNeighbors = function(r, q) {
+    this.getNeighbors = function(q, r) {
         // TODO...
     }
 

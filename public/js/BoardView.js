@@ -1,16 +1,23 @@
 
 var Board = require('./Board').Board,
-    Hex = require('./Hex').Hex;
+    HexView = require('./HexView').HexView;
 
 var BoardView = function(svg, hexSize) {
 
     this.hexSize = hexSize;
     this.board = new Board();
 
+    // hex data
+    this.height = hexSize || 50;
+    this.edge = this.height * 0.5; // ratio 3/5
+    this.pointWidth = this.height * 0.5; // ratio 1/2
+    this.width = this.edge + this.height;
+    this.size = this.width * 0.5;
+
     this.hexToPixel = function(r, q) {
         return {
-            x: this.hexSize * 1.5 * q,
-            y: this.hexSize * Math.sqrt(3) * (r + q/2)
+            x: 50+ this.size * 1.5 * q,
+            y: 50+ this.size * Math.sqrt(3) * (r + q/2)
         }
     }
 
@@ -22,7 +29,7 @@ var BoardView = function(svg, hexSize) {
             coords = self.hexToPixel(r, q);
 
             console.log("coords: ", r, q, coords);
-            hex = new Hex(coords.x, coords.y, self.hexSize);
+            hex = new HexView(coords.x, coords.y, self.hexSize);
             hex.drawSvg(svg);
         });
     }
