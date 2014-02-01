@@ -1,13 +1,17 @@
 
-// var SVG = require('svg');
+// math: http://www.redblobgames.com/grids/hexagons/#basics
+var HexView = function(x, y, size) {
 
-var HexView = function(x, y, height) {
+    // should hexegon be drawn with flat or pointy top?
+    flatTopped = false;
+
     this.posX = x;
     this.posY = y;
-    this.height = height || 50;
-    this.edge = height * 0.5; // ratio 3/5
-    this.pointWidth = height * 0.5; // ratio 1/2
-    this.width = this.edge + height;
+
+    this.size = size || 50;
+
+    this.width = 2 * size;
+    this.height = 2 * (this.size * 0.866025);
     this.vertices = [];
 
     // calculate vertices
@@ -15,14 +19,21 @@ var HexView = function(x, y, height) {
         widthQuarter = widthHalf * 0.5,
         heightHalf = this.height * 0.5;
 
-    this.size = widthHalf;
-
-    this.vertices.push([x-widthHalf, y]);
-    this.vertices.push([x-widthQuarter, y-heightHalf]);
-    this.vertices.push([x+widthQuarter, y-heightHalf]);
-    this.vertices.push([x+widthHalf, y]);
-    this.vertices.push([x+widthQuarter, y+heightHalf]);
-    this.vertices.push([x-widthQuarter, y+heightHalf]);
+    if(flatTopped) {
+        this.vertices.push([x-widthHalf, y]);
+        this.vertices.push([x-widthQuarter, y-heightHalf]);
+        this.vertices.push([x+widthQuarter, y-heightHalf]);
+        this.vertices.push([x+widthHalf, y]);
+        this.vertices.push([x+widthQuarter, y+heightHalf]);
+        this.vertices.push([x-widthQuarter, y+heightHalf]);
+    } else {
+        this.vertices.push([x, y-widthHalf]);
+        this.vertices.push([x+heightHalf, y-widthQuarter]);
+        this.vertices.push([x+heightHalf, y+widthQuarter]);
+        this.vertices.push([x, y+widthHalf]);
+        this.vertices.push([x-heightHalf, y+widthQuarter]);
+        this.vertices.push([x-heightHalf, y-widthQuarter]);
+    }
 
 
     this.drawSvg = function(svg) {

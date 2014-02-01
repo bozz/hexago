@@ -9117,16 +9117,25 @@ return jQuery;
 var Board = function() {
 
     this.rows = 6,
-    this.cols = 6,
+    this.cols = 7,
     this.colShift = 2, // extra grid columns needed for storage
     this.grid = [
-        [-1, -1, 0, 0, 0, 0, 0, 0],
-        [-1, -1, 0, 0, 0, 0, 0, 0],
-        [-1, 0, 0, 0, 0, 0, 0, -1],
-        [-1, 0, 0, 0, 0, 0, 0, -1],
-        [0, 0, 0, 0, 0, 0, -1, -1],
-        [0, 0, 0, 0, 0, 0, -1, -1]
+        [-1, -1, -1, -1, 0, 0, 0, 0, 0, 0],
+        [-1, -1, -1, 0, 0, 0, 0, 0, 0, 0],
+        [-1, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [-1, 0, 0, 0, 0, 0, 0, 0, 0, -1],
+        [-1, 0, 0, 0, 0, 0, 0, 0, -1, -1],
+        [-1, 0, 0, 0, 0, 0, 0, -1, -1, -1]
     ];
+    // this.grid = [
+    //     [-1, -1, 0, 0, 0, 0, 0, 0, 0],
+    //     [-1, -1, 0, 0, 0, 0, 0, 0, 0],
+    //     [-1, 0, 0, 0, 0, 0, 0, 0, -1],
+    //     [-1, 0, 0, 0, 0, 0, 0, 0, -1],
+    //     [0, 0, 0, 0, 0, 0, 0, -1, -1],
+    //     [0, 0, 0, 0, 0, 0, 0, -1, -1]
+    // ];
 
     // get grid contents at specified coordinates
     this.getAt = function(q, r) {
@@ -9167,18 +9176,18 @@ var BoardView = function(svg, hexSize) {
     this.hexSize = hexSize;
     this.board = new Board();
 
-    // hex data
-    this.height = hexSize || 50;
-    this.edge = this.height * 0.5; // ratio 3/5
-    this.pointWidth = this.height * 0.5; // ratio 1/2
-    this.width = this.edge + this.height;
-    this.size = this.width * 0.5;
-
     this.hexToPixel = function(r, q) {
+        // pointy topped:
         return {
-            x: 50+ this.size * 1.5 * q,
-            y: 50+ this.size * Math.sqrt(3) * (r + q/2)
+            x: 50+ this.hexSize * Math.sqrt(3) * (r + q/2),
+            y: 50+ this.hexSize * 1.5 * q
         }
+
+        // flat topped:
+        // return {
+        //     x: 50+ this.hexSize * 1.5 * q,
+        //     y: 50+ this.hexSize * Math.sqrt(3) * (r + q/2)
+        // }
     }
 
     this.render = function() {
@@ -9216,15 +9225,19 @@ exports.BoardView = BoardView;
 
 },{"./Board":2,"./HexView":4}],4:[function(require,module,exports){
 
-// var SVG = require('svg');
+// math: http://www.redblobgames.com/grids/hexagons/#basics
+var HexView = function(x, y, size) {
 
-var HexView = function(x, y, height) {
+    // should hexegon be drawn with flat or pointy top?
+    flatTopped = false;
+
     this.posX = x;
     this.posY = y;
-    this.height = height || 50;
-    this.edge = height * 0.5; // ratio 3/5
-    this.pointWidth = height * 0.5; // ratio 1/2
-    this.width = this.edge + height;
+
+    this.size = size || 50;
+
+    this.width = 2 * size;
+    this.height = 2 * (this.size * 0.866025);
     this.vertices = [];
 
     // calculate vertices
@@ -9232,14 +9245,21 @@ var HexView = function(x, y, height) {
         widthQuarter = widthHalf * 0.5,
         heightHalf = this.height * 0.5;
 
-    this.size = widthHalf;
-
-    this.vertices.push([x-widthHalf, y]);
-    this.vertices.push([x-widthQuarter, y-heightHalf]);
-    this.vertices.push([x+widthQuarter, y-heightHalf]);
-    this.vertices.push([x+widthHalf, y]);
-    this.vertices.push([x+widthQuarter, y+heightHalf]);
-    this.vertices.push([x-widthQuarter, y+heightHalf]);
+    if(flatTopped) {
+        this.vertices.push([x-widthHalf, y]);
+        this.vertices.push([x-widthQuarter, y-heightHalf]);
+        this.vertices.push([x+widthQuarter, y-heightHalf]);
+        this.vertices.push([x+widthHalf, y]);
+        this.vertices.push([x+widthQuarter, y+heightHalf]);
+        this.vertices.push([x-widthQuarter, y+heightHalf]);
+    } else {
+        this.vertices.push([x, y-widthHalf]);
+        this.vertices.push([x+heightHalf, y-widthQuarter]);
+        this.vertices.push([x+heightHalf, y+widthQuarter]);
+        this.vertices.push([x, y+widthHalf]);
+        this.vertices.push([x-heightHalf, y+widthQuarter]);
+        this.vertices.push([x-heightHalf, y-widthQuarter]);
+    }
 
 
     this.drawSvg = function(svg) {
@@ -9285,7 +9305,7 @@ var BoardView = require('./BoardView.js').BoardView;
 
 $(function() {
 
-    var svg = SVG('board').size(800, 600);
+    var svg = SVG('board').size(650, 500);
 
     // var canvasHeight = 400,
     //     canvasWidth = 600,
@@ -9298,7 +9318,7 @@ $(function() {
     // ctx.strokeStyle = '#cccccc';
     // ctx.lineWidth = 1;
 
-    var boardView = new BoardView(svg, 50);
+    var boardView = new BoardView(svg, 35);
     boardView.render();
 
     console.log("fin.");

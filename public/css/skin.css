@@ -4,6 +4,7 @@ body {
 }
 
 h1 {
+    font-family: "Lucida Console", Monaco, monospace;
     text-align: center;
 }
 
@@ -14,10 +15,16 @@ canvas {
     margin: 0 auto;
 }
 
+#board {
+    margin: 0 auto;
+    width: 650px;
+}
 #board polygon {
-    fill: none;
+    fill: #ddd;
+    stroke: #ccc;
+    stroke-width: 3;
     pointer-events: all;
 }
 #board polygon:hover {
-    fill: red;
+    fill: #999;
 }
