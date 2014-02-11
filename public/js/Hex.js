@@ -5,6 +5,8 @@ var Hex = Class.extend({
     init: function(config) {
         this.config = config;
         this.type = Hex.TYPE.empty;
+        this.q = config.q;
+        this.r = config.r;
     },
     delete: function() {
         // cleanup

@@ -8,19 +8,12 @@ h1 {
     text-align: center;
 }
 
-canvas {
-    background: #ccc;
-    border: 0;
-    display: block;
-    margin: 0 auto;
-}
-
 #board {
     margin: 0 auto;
-    width: 650px;
+    width: 850px;
 }
 #board polygon {
-    fill: #ddd;
+    /* fill: #ddd; */
     stroke: #ccc;
     stroke-width: 3;
     pointer-events: all;

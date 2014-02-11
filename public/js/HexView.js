@@ -1,70 +1,66 @@
 
+// should hexegon be drawn with flat or pointy top?
+var flatTopped = false;
+
+
 // math: http://www.redblobgames.com/grids/hexagons/#basics
-var HexView = function(x, y, size) {
+var HexView = {
+    
+    render: function(hex, config) {
 
-    // should hexegon be drawn with flat or pointy top?
-    flatTopped = false;
+        if(!config.x || !config.y || !config.svg) {
+            throw new Error('required parameters missing!');
+        }
 
-    this.posX = x;
-    this.posY = y;
+        var x = config.x,
+            y = config.y,
+            size = config.size || 50,
 
-    this.size = size || 50;
+            width = 2 * size,
+            height = 2 * (size * 0.866025),
+            vertices = [];
 
-    this.width = 2 * size;
-    this.height = 2 * (this.size * 0.866025);
-    this.vertices = [];
+        // calculate vertices
+        var widthHalf = width * 0.5,
+            widthQuarter = widthHalf * 0.5,
+            heightHalf = height * 0.5;
 
-    // calculate vertices
-    var widthHalf = this.width * 0.5,
-        widthQuarter = widthHalf * 0.5,
-        heightHalf = this.height * 0.5;
+        if(flatTopped) {
+            vertices.push([x-widthHalf, y]);
+            vertices.push([x-widthQuarter, y-heightHalf]);
+            vertices.push([x+widthQuarter, y-heightHalf]);
+            vertices.push([x+widthHalf, y]);
+            vertices.push([x+widthQuarter, y+heightHalf]);
+            vertices.push([x-widthQuarter, y+heightHalf]);
+        } else {
+            vertices.push([x, y-widthHalf]);
+            vertices.push([x+heightHalf, y-widthQuarter]);
+            vertices.push([x+heightHalf, y+widthQuarter]);
+            vertices.push([x, y+widthHalf]);
+            vertices.push([x-heightHalf, y+widthQuarter]);
+            vertices.push([x-heightHalf, y-widthQuarter]);
+        }
 
-    if(flatTopped) {
-        this.vertices.push([x-widthHalf, y]);
-        this.vertices.push([x-widthQuarter, y-heightHalf]);
-        this.vertices.push([x+widthQuarter, y-heightHalf]);
-        this.vertices.push([x+widthHalf, y]);
-        this.vertices.push([x+widthQuarter, y+heightHalf]);
-        this.vertices.push([x-widthQuarter, y+heightHalf]);
-    } else {
-        this.vertices.push([x, y-widthHalf]);
-        this.vertices.push([x+heightHalf, y-widthQuarter]);
-        this.vertices.push([x+heightHalf, y+widthQuarter]);
-        this.vertices.push([x, y+widthHalf]);
-        this.vertices.push([x-heightHalf, y+widthQuarter]);
-        this.vertices.push([x-heightHalf, y-widthQuarter]);
-    }
-
-
-    this.drawSvg = function(svg) {
         var vertString = "";
         for(i=0; i<6; i++) {
-            vert = this.vertices[i];
+            vert = vertices[i];
             vertString += vert[0] + ',' + vert[1] + ' ';
         }
-        svg.polygon(vertString).fill('none').stroke({ width: 1 })
-    }
 
-    // deprecated: canvas draw
-    this.draw = function(ctx, fill) {
-        var fill = fill || false,
-            i, vert;
-
-        ctx.beginPath();
-
-        for(i=0; i<6; i++) {
-            vert = this.vertices[i];
-            if(i==0) {
-                ctx.moveTo(vert[0], vert[1]);
-            } else {
-                ctx.lineTo(vert[0], vert[1]);
-            }
+        var fill = {color: '#ddd'};
+        if(hex.type == 1) {
+            fill = {color: '#339933'};
+        } else if(hex.type == 2) {
+            fill = {color: '#336699'};
         }
+        config.svg.polygon(vertString).fill(fill).stroke({ width: 1 })
 
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-    };
+        var text = config.svg.text(hex.q + ', ' + hex.r);
+        text.x(x-10);
+        text.y(y+15);
+        text.style('font-size:10px');
+
+    }
 
 }
 

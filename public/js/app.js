@@ -6,7 +6,7 @@ var BoardView = require('./BoardView.js').BoardView;
 
 $(function() {
 
-    var svg = SVG('board').size(650, 500);
+    var svg = SVG('board').size(850, 700);
 
     // var canvasHeight = 400,
     //     canvasWidth = 600,
@@ -19,7 +19,7 @@ $(function() {
     // ctx.strokeStyle = '#cccccc';
     // ctx.lineWidth = 1;
 
-    var boardView = new BoardView(svg, 35);
+    var boardView = new BoardView(svg, 50);
     boardView.render();
 
     console.log("fin.");

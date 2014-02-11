@@ -1,17 +1,19 @@
 
 var Board = require('./Board').Board,
-    HexView = require('./HexView').HexView;
+    Hex = require('./Hex').Hex,
+    HexTile = require('./HexTile').HexTile,
+    HexView = require('./HexView').HexView
 
 var BoardView = function(svg, hexSize) {
 
     this.hexSize = hexSize;
     this.board = new Board();
 
-    this.hexToPixel = function(r, q) {
+    this.hexToPixel = function(q, r) {
         // pointy topped:
         return {
-            x: 50+ this.hexSize * Math.sqrt(3) * (r + q/2),
-            y: 50+ this.hexSize * 1.5 * q
+            x: 400+ this.hexSize * Math.sqrt(3) * (q + r/2),
+            y: 300+ this.hexSize * 1.5 * r
         }
 
         // flat topped:
@@ -25,30 +27,19 @@ var BoardView = function(svg, hexSize) {
         var self = this,
             coords, hex;
 
-        this.board.each(function(r, q, val) {
-            coords = self.hexToPixel(r, q);
+        this.board.each(function(q, r, hex) {
+            coords = self.hexToPixel(q, r);
 
-            console.log("coords: ", r, q, coords);
-            hex = new HexView(coords.x, coords.y, self.hexSize);
-            hex.drawSvg(svg);
+            // console.log("coords: ", q, r, coords, hex);
+
+            HexView.render(hex, {
+                svg: svg,
+                x: coords.x,
+                y: coords.y,
+                size: self.hexSize
+            });
         });
     }
-
-    // var xi = 100,
-    //     yi = 40,
-    //     height = 50,
-    //     heightHalf = 25,
-    //     hex, even;
-
-    //         even = i%2 == 0;
-    //         hex = new Hex(xi, even?yi+heightHalf:yi, height)
-    //         // hex.draw(ctx);
-    //         hex.drawSvg(svg);
-    //         // console.log("xi:", xi);
-    //         xi = xi + hex.edge + hex.pointWidth + 6;
-    //     }
-    //     xi = 100;
-    //     yi = yi + height;
 
 };
 

@@ -9112,22 +9112,27 @@ return jQuery;
 }));
 
 },{}],2:[function(require,module,exports){
+var Hex = require('./Hex').Hex,
+    HexTile = require('./HexTile').HexTile;
 
 // using axial coordinates
-var Board = function() {
+var Board = function(config) {
 
-    this.rows = 6,
+    this.rows = 7,
     this.cols = 7,
     this.colShift = 2, // extra grid columns needed for storage
     this.grid = [
-        [-1, -1, -1, -1, 0, 0, 0, 0, 0, 0],
-        [-1, -1, -1, 0, 0, 0, 0, 0, 0, 0],
-        [-1, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [-1, -1, -1, -1, 1, 0, 0, 0, 0, 1],
+        [-1, -1, -1, 0, 0, 1, 0, 0, 0, 0],
+        [-1, -1, 0, 0, 0, 1, 0, 0, 0, 0],
         [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [-1, 0, 0, 0, 0, 0, 0, 0, 0, -1],
-        [-1, 0, 0, 0, 0, 0, 0, 0, -1, -1],
-        [-1, 0, 0, 0, 0, 0, 0, -1, -1, -1]
+        [-1, 0, 0, 0, 0, 0, 2, 0, 0, -1],
+        [-1, 0, 0, 0, 0, 0, 2, 2, -1, -1],
+        [-1, 2, 0, 0, 0, 0, 2, -1, -1, -1]
     ];
+
+    var N = Math.floor(this.rows*0.5);
+
     // this.grid = [
     //     [-1, -1, 0, 0, 0, 0, 0, 0, 0],
     //     [-1, -1, 0, 0, 0, 0, 0, 0, 0],
@@ -9137,21 +9142,90 @@ var Board = function() {
     //     [0, 0, 0, 0, 0, 0, 0, -1, -1]
     // ];
 
-    // get grid contents at specified coordinates
-    this.getAt = function(q, r) {
-        var rShifted = r+this.colShift;
-        if(rShifted >= this.cols || rShifted < 0 || q < 0 || q >= this.rows) {
-            return -1;
+
+    this.initGrid = function() {
+        // currently only creates hexagon grids with uneven row numbers
+
+        this.grid = [];
+
+        for(var i=0; i<this.rows; i++) {
+            this.grid.push([]);
+            for(var j=0; j<this.rows; j++) {
+                var tmp = i-N;
+                if((tmp<0 && j<Math.abs(tmp)) || (tmp>0 && j>=this.rows-tmp)) {
+                    this.grid[i].push(-1);
+                } else {
+                    this.grid[i].push(0);
+                }
+            }
         }
-        return this.grid[q][r];
+
+    }
+
+    this.init = function(config) {
+        var self = this,
+            config = {};
+
+        this.initGrid();
+
+        this.each(function(q, r, hex) {
+            // console.log("coords: ", r, q, hex);
+            config.q = q;
+            config.r = r;
+
+            switch(hex) {
+                case 1:
+                    self.setHexAt(new HexTile(config), q, r);
+                    break;
+                case 2:
+                    config.type = hex;
+                    self.setHexAt(new HexTile(config), q, r);
+                    break;
+                default:
+                    self.setHexAt(new Hex(config), q, r);
+            }
+        });
+
+        // console.log(counter, "#####################", this.grid);
+    }
+
+    // get grid contents at specified coordinates
+    this.getHexAt = function(q, r) {
+        // var rShifted = r+this.colShift;
+        // if(rShifted >= this.cols || rShifted < 0 || q < 0 || q >= this.rows) {
+        //     return -1;
+        // }
+        return this.grid[r+N][q+N];
+    }
+
+    this.setHexAt = function(hex, q, r) {
+        if(!hex || typeof q == "undefined" || typeof r == "undefined") {
+            throw new Error('required arguments missing');
+        }
+
+        var currentHex = this.getHexAt(q, r); //grid[q][r];
+        if(currentHex instanceof Hex){
+            currentHex.delete();
+        }
+
+        // console.log("CURRENT: ", q, r, currentHex);
+        // if(currentHex === -1) return;
+
+        // console.log("--", q, r, hex);
+        // this.grid[q][r] = hex;
+        this.grid[r+N][q+N] = hex;
     }
 
     this.each = function(callback) {
-        var i, j;
+        var i, j, q, r;
         for(i = 0; i<this.grid.length; i++) {
             for(j = 0; j<this.grid[i].length; j++) {
                 if(this.grid[i][j] !== -1) {
-                    callback(j-this.colShift, i, this.grid[i][j]);
+                    callback(j-N, i-N, this.grid[i][j]);
+
+                    var q = j-N;
+                    var r = i-N;
+                    // console.log("check coords: ", i, j, ":::: ", q, r, " ==> ", r+N, q+N);
                 }
             }
         }
@@ -9162,25 +9236,31 @@ var Board = function() {
         // TODO...
     }
 
+
+    // initialize
+    this.init();
+
 };
 
 exports.Board = Board;
 
-},{}],3:[function(require,module,exports){
+},{"./Hex":4,"./HexTile":5}],3:[function(require,module,exports){
 
 var Board = require('./Board').Board,
-    HexView = require('./HexView').HexView;
+    Hex = require('./Hex').Hex,
+    HexTile = require('./HexTile').HexTile,
+    HexView = require('./HexView').HexView
 
 var BoardView = function(svg, hexSize) {
 
     this.hexSize = hexSize;
     this.board = new Board();
 
-    this.hexToPixel = function(r, q) {
+    this.hexToPixel = function(q, r) {
         // pointy topped:
         return {
-            x: 50+ this.hexSize * Math.sqrt(3) * (r + q/2),
-            y: 50+ this.hexSize * 1.5 * q
+            x: 400+ this.hexSize * Math.sqrt(3) * (q + r/2),
+            y: 300+ this.hexSize * 1.5 * r
         }
 
         // flat topped:
@@ -9194,109 +9274,138 @@ var BoardView = function(svg, hexSize) {
         var self = this,
             coords, hex;
 
-        this.board.each(function(r, q, val) {
-            coords = self.hexToPixel(r, q);
+        this.board.each(function(q, r, hex) {
+            coords = self.hexToPixel(q, r);
 
-            console.log("coords: ", r, q, coords);
-            hex = new HexView(coords.x, coords.y, self.hexSize);
-            hex.drawSvg(svg);
+            // console.log("coords: ", q, r, coords, hex);
+
+            HexView.render(hex, {
+                svg: svg,
+                x: coords.x,
+                y: coords.y,
+                size: self.hexSize
+            });
         });
     }
-
-    // var xi = 100,
-    //     yi = 40,
-    //     height = 50,
-    //     heightHalf = 25,
-    //     hex, even;
-
-    //         even = i%2 == 0;
-    //         hex = new Hex(xi, even?yi+heightHalf:yi, height)
-    //         // hex.draw(ctx);
-    //         hex.drawSvg(svg);
-    //         // console.log("xi:", xi);
-    //         xi = xi + hex.edge + hex.pointWidth + 6;
-    //     }
-    //     xi = 100;
-    //     yi = yi + height;
 
 };
 
 exports.BoardView = BoardView;
 
-},{"./Board":2,"./HexView":4}],4:[function(require,module,exports){
+},{"./Board":2,"./Hex":4,"./HexTile":5,"./HexView":6}],4:[function(require,module,exports){
+
+var Class = require('../lib/class').Class;
+
+var Hex = Class.extend({
+    init: function(config) {
+        this.config = config;
+        this.type = Hex.TYPE.empty;
+        this.q = config.q;
+        this.r = config.r;
+    },
+    delete: function() {
+        // cleanup
+    }
+});
+
+Hex.TYPE = {
+    empty: 0,
+    green: 1,
+    blue: 2
+}
+
+exports.Hex = Hex;
+
+
+
+
+},{"../lib/class":8}],5:[function(require,module,exports){
+
+var Hex = require('./Hex').Hex;
+
+var HexTile = Hex.extend({
+    init: function(config) {
+        config = config || {};
+        this._super(config);
+        this.type = config.type || Hex.TYPE.green;
+    }
+});
+
+exports.HexTile = HexTile;
+
+
+
+
+},{"./Hex":4}],6:[function(require,module,exports){
+
+// should hexegon be drawn with flat or pointy top?
+var flatTopped = false;
+
 
 // math: http://www.redblobgames.com/grids/hexagons/#basics
-var HexView = function(x, y, size) {
+var HexView = {
+    
+    render: function(hex, config) {
 
-    // should hexegon be drawn with flat or pointy top?
-    flatTopped = false;
+        if(!config.x || !config.y || !config.svg) {
+            throw new Error('required parameters missing!');
+        }
 
-    this.posX = x;
-    this.posY = y;
+        var x = config.x,
+            y = config.y,
+            size = config.size || 50,
 
-    this.size = size || 50;
+            width = 2 * size,
+            height = 2 * (size * 0.866025),
+            vertices = [];
 
-    this.width = 2 * size;
-    this.height = 2 * (this.size * 0.866025);
-    this.vertices = [];
+        // calculate vertices
+        var widthHalf = width * 0.5,
+            widthQuarter = widthHalf * 0.5,
+            heightHalf = height * 0.5;
 
-    // calculate vertices
-    var widthHalf = this.width * 0.5,
-        widthQuarter = widthHalf * 0.5,
-        heightHalf = this.height * 0.5;
+        if(flatTopped) {
+            vertices.push([x-widthHalf, y]);
+            vertices.push([x-widthQuarter, y-heightHalf]);
+            vertices.push([x+widthQuarter, y-heightHalf]);
+            vertices.push([x+widthHalf, y]);
+            vertices.push([x+widthQuarter, y+heightHalf]);
+            vertices.push([x-widthQuarter, y+heightHalf]);
+        } else {
+            vertices.push([x, y-widthHalf]);
+            vertices.push([x+heightHalf, y-widthQuarter]);
+            vertices.push([x+heightHalf, y+widthQuarter]);
+            vertices.push([x, y+widthHalf]);
+            vertices.push([x-heightHalf, y+widthQuarter]);
+            vertices.push([x-heightHalf, y-widthQuarter]);
+        }
 
-    if(flatTopped) {
-        this.vertices.push([x-widthHalf, y]);
-        this.vertices.push([x-widthQuarter, y-heightHalf]);
-        this.vertices.push([x+widthQuarter, y-heightHalf]);
-        this.vertices.push([x+widthHalf, y]);
-        this.vertices.push([x+widthQuarter, y+heightHalf]);
-        this.vertices.push([x-widthQuarter, y+heightHalf]);
-    } else {
-        this.vertices.push([x, y-widthHalf]);
-        this.vertices.push([x+heightHalf, y-widthQuarter]);
-        this.vertices.push([x+heightHalf, y+widthQuarter]);
-        this.vertices.push([x, y+widthHalf]);
-        this.vertices.push([x-heightHalf, y+widthQuarter]);
-        this.vertices.push([x-heightHalf, y-widthQuarter]);
-    }
-
-
-    this.drawSvg = function(svg) {
         var vertString = "";
         for(i=0; i<6; i++) {
-            vert = this.vertices[i];
+            vert = vertices[i];
             vertString += vert[0] + ',' + vert[1] + ' ';
         }
-        svg.polygon(vertString).fill('none').stroke({ width: 1 })
-    }
 
-    // deprecated: canvas draw
-    this.draw = function(ctx, fill) {
-        var fill = fill || false,
-            i, vert;
-
-        ctx.beginPath();
-
-        for(i=0; i<6; i++) {
-            vert = this.vertices[i];
-            if(i==0) {
-                ctx.moveTo(vert[0], vert[1]);
-            } else {
-                ctx.lineTo(vert[0], vert[1]);
-            }
+        var fill = {color: '#ddd'};
+        if(hex.type == 1) {
+            fill = {color: '#339933'};
+        } else if(hex.type == 2) {
+            fill = {color: '#336699'};
         }
+        config.svg.polygon(vertString).fill(fill).stroke({ width: 1 })
 
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-    };
+        var text = config.svg.text(hex.q + ', ' + hex.r);
+        text.x(x-10);
+        text.y(y+15);
+        text.style('font-size:10px');
+
+    }
 
 }
 
 exports.HexView = HexView;
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 var $ = require('jquery');
 var SVG = (window.SVG);
@@ -9305,7 +9414,7 @@ var BoardView = require('./BoardView.js').BoardView;
 
 $(function() {
 
-    var svg = SVG('board').size(650, 500);
+    var svg = SVG('board').size(850, 700);
 
     // var canvasHeight = 400,
     //     canvasWidth = 600,
@@ -9318,11 +9427,81 @@ $(function() {
     // ctx.strokeStyle = '#cccccc';
     // ctx.lineWidth = 1;
 
-    var boardView = new BoardView(svg, 35);
+    var boardView = new BoardView(svg, 50);
     boardView.render();
 
     console.log("fin.");
 });
 
 
-},{"./BoardView.js":3,"jquery":1}]},{},[5])
+},{"./BoardView.js":3,"jquery":1}],8:[function(require,module,exports){
+/* Simple JavaScript Inheritance
+ * By John Resig http://ejohn.org/
+ * MIT Licensed.
+ */
+// Inspired by base2 and Prototype
+
+// (function(){
+  var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+
+  // The base Class implementation (does nothing)
+  // this.Class = function(){};
+  var Class = function(){};
+
+  // Create a new Class that inherits from this class
+  Class.extend = function(prop) {
+    var _super = this.prototype;
+
+    // Instantiate a base class (but only create the instance,
+    // don't run the init constructor)
+    initializing = true;
+    var prototype = new this();
+    initializing = false;
+
+    // Copy the properties over onto the new prototype
+    for (var name in prop) {
+      // Check if we're overwriting an existing function
+      prototype[name] = typeof prop[name] == "function" &&
+        typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+        (function(name, fn){
+          return function() {
+            var tmp = this._super;
+
+            // Add a new ._super() method that is the same method
+            // but on the super-class
+            this._super = _super[name];
+
+            // The method only need to be bound temporarily, so we
+            // remove it when we're done executing
+            var ret = fn.apply(this, arguments);        
+            this._super = tmp;
+
+            return ret;
+          };
+        })(name, prop[name]) :
+        prop[name];
+    }
+
+    // The dummy class constructor
+    function Class() {
+      // All construction is actually done in the init method
+      if ( !initializing && this.init )
+        this.init.apply(this, arguments);
+    }
+
+    // Populate our constructed prototype object
+    Class.prototype = prototype;
+
+    // Enforce the constructor to be what we expect
+    Class.prototype.constructor = Class;
+
+    // And make this class extendable
+    Class.extend = arguments.callee;
+
+    return Class;
+  };
+// })();
+
+exports.Class = Class;
+
+},{}]},{},[7])
