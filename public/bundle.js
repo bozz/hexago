@@ -9118,33 +9118,12 @@ var Hex = require('./Hex').Hex,
 // using axial coordinates
 var Board = function(config) {
 
-    this.rows = 7,
-    this.cols = 7,
-    this.colShift = 2, // extra grid columns needed for storage
-    this.grid = [
-        [-1, -1, -1, -1, 1, 0, 0, 0, 0, 1],
-        [-1, -1, -1, 0, 0, 1, 0, 0, 0, 0],
-        [-1, -1, 0, 0, 0, 1, 0, 0, 0, 0],
-        [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [-1, 0, 0, 0, 0, 0, 2, 0, 0, -1],
-        [-1, 0, 0, 0, 0, 0, 2, 2, -1, -1],
-        [-1, 2, 0, 0, 0, 0, 2, -1, -1, -1]
-    ];
+    this.rows = 7; // needs to be uneven number
 
     var N = Math.floor(this.rows*0.5);
 
-    // this.grid = [
-    //     [-1, -1, 0, 0, 0, 0, 0, 0, 0],
-    //     [-1, -1, 0, 0, 0, 0, 0, 0, 0],
-    //     [-1, 0, 0, 0, 0, 0, 0, 0, -1],
-    //     [-1, 0, 0, 0, 0, 0, 0, 0, -1],
-    //     [0, 0, 0, 0, 0, 0, 0, -1, -1],
-    //     [0, 0, 0, 0, 0, 0, 0, -1, -1]
-    // ];
-
-
+    // currently only creates hexagon grids with uneven row numbers
     this.initGrid = function() {
-        // currently only creates hexagon grids with uneven row numbers
 
         this.grid = [];
 
@@ -9159,7 +9138,6 @@ var Board = function(config) {
                 }
             }
         }
-
     }
 
     this.init = function(config) {
@@ -9169,7 +9147,6 @@ var Board = function(config) {
         this.initGrid();
 
         this.each(function(q, r, hex) {
-            // console.log("coords: ", r, q, hex);
             config.q = q;
             config.r = r;
 
@@ -9185,16 +9162,10 @@ var Board = function(config) {
                     self.setHexAt(new Hex(config), q, r);
             }
         });
-
-        // console.log(counter, "#####################", this.grid);
     }
 
     // get grid contents at specified coordinates
     this.getHexAt = function(q, r) {
-        // var rShifted = r+this.colShift;
-        // if(rShifted >= this.cols || rShifted < 0 || q < 0 || q >= this.rows) {
-        //     return -1;
-        // }
         return this.grid[r+N][q+N];
     }
 
@@ -9203,16 +9174,11 @@ var Board = function(config) {
             throw new Error('required arguments missing');
         }
 
-        var currentHex = this.getHexAt(q, r); //grid[q][r];
+        var currentHex = this.getHexAt(q, r);
         if(currentHex instanceof Hex){
             currentHex.delete();
         }
 
-        // console.log("CURRENT: ", q, r, currentHex);
-        // if(currentHex === -1) return;
-
-        // console.log("--", q, r, hex);
-        // this.grid[q][r] = hex;
         this.grid[r+N][q+N] = hex;
     }
 
@@ -9225,7 +9191,6 @@ var Board = function(config) {
 
                     var q = j-N;
                     var r = i-N;
-                    // console.log("check coords: ", i, j, ":::: ", q, r, " ==> ", r+N, q+N);
                 }
             }
         }
@@ -9262,7 +9227,6 @@ var BoardView = function(svg, hexSize) {
             x: 400+ this.hexSize * Math.sqrt(3) * (q + r/2),
             y: 300+ this.hexSize * 1.5 * r
         }
-
         // flat topped:
         // return {
         //     x: 50+ this.hexSize * 1.5 * q,
@@ -9276,8 +9240,6 @@ var BoardView = function(svg, hexSize) {
 
         this.board.each(function(q, r, hex) {
             coords = self.hexToPixel(q, r);
-
-            // console.log("coords: ", q, r, coords, hex);
 
             HexView.render(hex, {
                 svg: svg,
@@ -9344,7 +9306,7 @@ var flatTopped = false;
 
 // math: http://www.redblobgames.com/grids/hexagons/#basics
 var HexView = {
-    
+
     render: function(hex, config) {
 
         if(!config.x || !config.y || !config.svg) {
@@ -9413,19 +9375,7 @@ var BoardView = require('./BoardView.js').BoardView;
 
 
 $(function() {
-
     var svg = SVG('board').size(850, 700);
-
-    // var canvasHeight = 400,
-    //     canvasWidth = 600,
-    //     canvas = document.getElementById('canvas'),
-    //     ctx = canvas.getContext('2d');
-
-    // ctx.canvas.height = canvasHeight;
-    // ctx.canvas.width = canvasWidth;
-    // ctx.fillStyle = '#aaaaaa';
-    // ctx.strokeStyle = '#cccccc';
-    // ctx.lineWidth = 1;
 
     var boardView = new BoardView(svg, 50);
     boardView.render();

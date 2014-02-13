@@ -15,7 +15,6 @@ var BoardView = function(svg, hexSize) {
             x: 400+ this.hexSize * Math.sqrt(3) * (q + r/2),
             y: 300+ this.hexSize * 1.5 * r
         }
-
         // flat topped:
         // return {
         //     x: 50+ this.hexSize * 1.5 * q,
@@ -29,8 +28,6 @@ var BoardView = function(svg, hexSize) {
 
         this.board.each(function(q, r, hex) {
             coords = self.hexToPixel(q, r);
-
-            // console.log("coords: ", q, r, coords, hex);
 
             HexView.render(hex, {
                 svg: svg,

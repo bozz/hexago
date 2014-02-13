@@ -5,7 +5,7 @@ var flatTopped = false;
 
 // math: http://www.redblobgames.com/grids/hexagons/#basics
 var HexView = {
-    
+
     render: function(hex, config) {
 
         if(!config.x || !config.y || !config.svg) {
