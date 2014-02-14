@@ -1,12 +1,14 @@
-var Hex = require('./Hex').Hex,
-    HexTile = require('./HexTile').HexTile;
+var Hex = require('./hex'),
+    HexTile = require('./hexTile');
 
 // using axial coordinates
 var Board = function(config) {
 
     this.rows = 7; // needs to be uneven number
 
-    var N = Math.floor(this.rows*0.5);
+    var N = Math.floor(this.rows*0.5),
+        boardHexes = [];
+        grid = [],
 
     // currently only creates hexagon grids with uneven row numbers
     this.initGrid = function() {
@@ -45,9 +47,14 @@ var Board = function(config) {
                     self.setHexAt(new HexTile(config), q, r);
                     break;
                 default:
-                    self.setHexAt(new Hex(config), q, r);
+                    boardHexes.push(new Hex(config));
+                    // self.setHexAt(new Hex(config), q, r);
             }
         });
+    }
+
+    this.getBoardHexes = function() {
+        return boardHexes;
     }
 
     // get grid contents at specified coordinates
@@ -93,4 +100,4 @@ var Board = function(config) {
 
 };
 
-exports.Board = Board;
+module.exports = Board;

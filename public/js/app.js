@@ -1,13 +1,10 @@
 
-var $ = require('jquery');
-var SVG = require('svg');
-var BoardView = require('./BoardView.js').BoardView;
+var BoardView = require('./boardView.js');
 
 
-$(function() {
-    var svg = SVG('board').size(850, 700);
+document.addEventListener('DOMContentLoaded', function() {
 
-    var boardView = new BoardView(svg, 50);
+    var boardView = new BoardView();
     boardView.render();
 
     console.log("fin.");

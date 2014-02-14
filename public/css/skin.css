@@ -10,7 +10,7 @@ h1 {
 
 #board {
     margin: 0 auto;
-    width: 850px;
+    width: 700px;
 }
 #board polygon {
     /* fill: #ddd; */

@@ -64,4 +64,4 @@ var HexView = {
 
 }
 
-exports.HexView = HexView;
+module.exports = HexView;

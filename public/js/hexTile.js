@@ -1,5 +1,5 @@
 
-var Hex = require('./Hex').Hex;
+var Hex = require('./hex');
 
 var HexTile = Hex.extend({
     init: function(config) {
@@ -9,7 +9,4 @@ var HexTile = Hex.extend({
     }
 });
 
-exports.HexTile = HexTile;
-
-
-
+module.exports = HexTile;

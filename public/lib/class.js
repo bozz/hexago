@@ -65,4 +65,4 @@
   };
 // })();
 
-exports.Class = Class;
+module.exports = Class;

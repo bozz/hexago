@@ -1,5 +1,5 @@
 
-var Class = require('../lib/class').Class;
+var Class = require('../lib/class');
 
 var Hex = Class.extend({
     init: function(config) {
@@ -19,7 +19,4 @@ Hex.TYPE = {
     blue: 2
 }
 
-exports.Hex = Hex;
-
-
-
+module.exports = Hex;
