@@ -90,6 +90,13 @@ var Board = function(config) {
         this.grid[r+N][q+N] = hex;
     }
 
+    this.removeHex = function(hex) {
+        if(hex && hex instanceof Hex) {
+            hex.delete();
+            this.grid[hex.r+N][hex.q+N] = 0;
+        }
+    }
+
     this.each = function(callback) {
         var i, j, q, r;
         for(i = 0; i<this.grid.length; i++) {
@@ -139,6 +146,7 @@ var BoardView = function(config) {
         sqrt3 = Math.sqrt(3);
 
     this.board = new Board();
+    this.hexTiles = {};
 
 
     var handleClick = function(event) {
@@ -147,22 +155,37 @@ var BoardView = function(config) {
         var coords = this.pixelToHex(event.layerX, event.layerY);
 
         var hex = this.board.getHexAt(coords.q, coords.r);
-        if(!hex) {
+        if(hex && hex instanceof Hex) {
+            var hexView = this.hexTiles[hexHash(coords)];
+            hexView.remove();
+            this.hexTiles[hexHash(coords)] = undefined;
+
+            this.board.removeHex(hex);
+        } else if(hex === 0){
             hex = new HexTile(coords);
             this.board.setHexAt(hex, coords.q, coords.r);
 
-            var pos = this.hexToPixel(coords.q, coords.r);
-            HexView.render(hex, {
-                svg: svg,
-                x: pos.x,
-                y: pos.y,
-                size: hexSize
-            });
+            var pos = this.hexToPixel(coords.q, coords.r),
+                hexView = new HexView({
+                    svg: svg,
+                    hex: hex,
+                    x: pos.x,
+                    y: pos.y,
+                    size: hexSize
+                });
+
+            hexView.render();
+            this.hexTiles[hexHash(coords)] = hexView;
         }
 
     }.bind(this);
 
     svg.on('click', handleClick);
+
+
+    var hexHash = function(coords) {
+        return "" + coords.q + coords.r;
+    }
 
 
 
@@ -204,17 +227,19 @@ var BoardView = function(config) {
     this.renderBoard = function() {
         var self = this,
             hexes = this.board.getBoardHexes(),
-            coords;
+            coords, hexView;
 
         hexes.forEach(function(hex) {
             coords = self.hexToPixel(hex.q, hex.r);
 
-            HexView.render(hex, {
+            hexView = new HexView({
                 svg: svg,
+                hex: hex,
                 x: coords.x,
                 y: coords.y,
                 size: self.hexSize
             });
+            hexView.render();
         });
     }
 
@@ -293,25 +318,42 @@ module.exports = HexTile;
 
 },{"./hex":4}],6:[function(require,module,exports){
 
+var Class = require('../lib/class');
+
 // should hexegon be drawn with flat or pointy top?
 var flatTopped = false;
 
 
 // math: http://www.redblobgames.com/grids/hexagons/#basics
-var HexView = {
+var HexView = Class.extend({
 
-    render: function(hex, config) {
+    init: function(config) {
+        config = config || {};
 
         if(!config.x || !config.y || !config.svg) {
             throw new Error('required parameters missing!');
         }
 
-        var x = config.x,
-            y = config.y,
-            size = config.size || 50,
+        this.hex = config.hex;
+        this.x = config.x;
+        this.y = config.y;
+        this.size = config.size || 50;
+        this.svg = config.svg;
+    },
 
-            width = 2 * size,
-            height = 2 * (size * 0.866025),
+    remove: function() {
+        if(this.el){
+            this.el.remove();
+        }
+    },
+
+    render: function() {
+
+        var x = this.x,
+            y = this.y,
+
+            width = 2 * this.size,
+            height = 2 * (this.size * 0.866025),
             vertices = [];
 
         // calculate vertices
@@ -342,25 +384,26 @@ var HexView = {
         }
 
         var fill = {color: '#ddd'};
-        if(hex.type == 1) {
+        if(this.hex.type == 1) {
             fill = {color: '#339933'};
-        } else if(hex.type == 2) {
+        } else if(this.hex.type == 2) {
             fill = {color: '#336699'};
         }
-        config.svg.polygon(vertString).fill(fill).stroke({ width: 1 })
 
-        var text = config.svg.text(hex.q + ', ' + hex.r);
+        this.el = this.svg.polygon(vertString).fill(fill).stroke({ width: 1 })
+
+        var text = this.svg.text(this.hex.q + ', ' + this.hex.r);
         text.x(x-10);
         text.y(y+15);
         text.style('font-size:10px');
 
     }
 
-}
+});
 
 module.exports = HexView;
 
-},{}],7:[function(require,module,exports){
+},{"../lib/class":7}],7:[function(require,module,exports){
 /* Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.

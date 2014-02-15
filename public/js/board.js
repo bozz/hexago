@@ -75,6 +75,13 @@ var Board = function(config) {
         this.grid[r+N][q+N] = hex;
     }
 
+    this.removeHex = function(hex) {
+        if(hex && hex instanceof Hex) {
+            hex.delete();
+            this.grid[hex.r+N][hex.q+N] = 0;
+        }
+    }
+
     this.each = function(callback) {
         var i, j, q, r;
         for(i = 0; i<this.grid.length; i++) {

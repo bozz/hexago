@@ -1,23 +1,40 @@
 
+var Class = require('../lib/class');
+
 // should hexegon be drawn with flat or pointy top?
 var flatTopped = false;
 
 
 // math: http://www.redblobgames.com/grids/hexagons/#basics
-var HexView = {
+var HexView = Class.extend({
 
-    render: function(hex, config) {
+    init: function(config) {
+        config = config || {};
 
         if(!config.x || !config.y || !config.svg) {
             throw new Error('required parameters missing!');
         }
 
-        var x = config.x,
-            y = config.y,
-            size = config.size || 50,
+        this.hex = config.hex;
+        this.x = config.x;
+        this.y = config.y;
+        this.size = config.size || 50;
+        this.svg = config.svg;
+    },
 
-            width = 2 * size,
-            height = 2 * (size * 0.866025),
+    remove: function() {
+        if(this.el){
+            this.el.remove();
+        }
+    },
+
+    render: function() {
+
+        var x = this.x,
+            y = this.y,
+
+            width = 2 * this.size,
+            height = 2 * (this.size * 0.866025),
             vertices = [];
 
         // calculate vertices
@@ -48,20 +65,21 @@ var HexView = {
         }
 
         var fill = {color: '#ddd'};
-        if(hex.type == 1) {
+        if(this.hex.type == 1) {
             fill = {color: '#339933'};
-        } else if(hex.type == 2) {
+        } else if(this.hex.type == 2) {
             fill = {color: '#336699'};
         }
-        config.svg.polygon(vertString).fill(fill).stroke({ width: 1 })
 
-        var text = config.svg.text(hex.q + ', ' + hex.r);
+        this.el = this.svg.polygon(vertString).fill(fill).stroke({ width: 1 })
+
+        var text = this.svg.text(this.hex.q + ', ' + this.hex.r);
         text.x(x-10);
         text.y(y+15);
         text.style('font-size:10px');
 
     }
 
-}
+});
 
 module.exports = HexView;

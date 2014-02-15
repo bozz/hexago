@@ -19,6 +19,7 @@ var BoardView = function(config) {
         sqrt3 = Math.sqrt(3);
 
     this.board = new Board();
+    this.hexTiles = {};
 
 
     var handleClick = function(event) {
@@ -27,22 +28,37 @@ var BoardView = function(config) {
         var coords = this.pixelToHex(event.layerX, event.layerY);
 
         var hex = this.board.getHexAt(coords.q, coords.r);
-        if(!hex) {
+        if(hex && hex instanceof Hex) {
+            var hexView = this.hexTiles[hexHash(coords)];
+            hexView.remove();
+            this.hexTiles[hexHash(coords)] = undefined;
+
+            this.board.removeHex(hex);
+        } else if(hex === 0){
             hex = new HexTile(coords);
             this.board.setHexAt(hex, coords.q, coords.r);
 
-            var pos = this.hexToPixel(coords.q, coords.r);
-            HexView.render(hex, {
-                svg: svg,
-                x: pos.x,
-                y: pos.y,
-                size: hexSize
-            });
+            var pos = this.hexToPixel(coords.q, coords.r),
+                hexView = new HexView({
+                    svg: svg,
+                    hex: hex,
+                    x: pos.x,
+                    y: pos.y,
+                    size: hexSize
+                });
+
+            hexView.render();
+            this.hexTiles[hexHash(coords)] = hexView;
         }
 
     }.bind(this);
 
     svg.on('click', handleClick);
+
+
+    var hexHash = function(coords) {
+        return "" + coords.q + coords.r;
+    }
 
 
 
@@ -84,17 +100,19 @@ var BoardView = function(config) {
     this.renderBoard = function() {
         var self = this,
             hexes = this.board.getBoardHexes(),
-            coords;
+            coords, hexView;
 
         hexes.forEach(function(hex) {
             coords = self.hexToPixel(hex.q, hex.r);
 
-            HexView.render(hex, {
+            hexView = new HexView({
                 svg: svg,
+                hex: hex,
                 x: coords.x,
                 y: coords.y,
                 size: self.hexSize
             });
+            hexView.render();
         });
     }
 
