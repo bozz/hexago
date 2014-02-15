@@ -1,12 +1,35 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
-var BoardView = require('./boardView');
+var BoardView = require('./boardView'),
+    Player = require('./player'),
+    PlayerListView = require('./playerListView');
     // move = require('../lib/move.min.js');
 
 
 var initGame = function() {
+    var players = [],
+        activePlayer = new Player({num: 1});
+
+    players.push(activePlayer);
+    players.push(new Player({num: 2}));
+
+    var playerListView = new PlayerListView({
+        el: 'player-list',
+        players: players
+    });
+    playerListView.render();
+
     var boardView = new BoardView();
     boardView.render();
+
+    boardView.bind('addHex', function() {
+        activePlayer.tileCount -= 1;
+        playerListView.updateTileCount(activePlayer);
+    });
+    boardView.bind('removeHex', function() {
+        activePlayer.tileCount += 1;
+        playerListView.updateTileCount(activePlayer);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -23,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-},{"./boardView":3}],2:[function(require,module,exports){
+},{"./boardView":3,"./player":7,"./playerListView":8}],2:[function(require,module,exports){
 var Hex = require('./hex'),
     HexTile = require('./hexTile');
 
@@ -137,7 +160,8 @@ module.exports = Board;
 
 },{"./hex":4,"./hexTile":5}],3:[function(require,module,exports){
 
-var SVG = (window.SVG),
+var MicroEvent = require('../lib/microevent.js'),
+    SVG = (window.SVG),
     Board = require('./board'),
     Hex = require('./hex'),
     HexTile = require('./hexTile'),
@@ -172,6 +196,8 @@ var BoardView = function(config) {
             this.hexTiles[hexHash(coords)] = undefined;
 
             this.board.removeHex(hex);
+
+            this.trigger('removeHex');
         } else if(hex === 0){
             hex = new HexTile(coords);
             this.board.setHexAt(hex, coords.q, coords.r);
@@ -187,6 +213,7 @@ var BoardView = function(config) {
 
             hexView.render();
             this.hexTiles[hexHash(coords)] = hexView;
+            this.trigger('addHex');
         }
 
     }.bind(this);
@@ -287,9 +314,11 @@ var BoardView = function(config) {
 
 };
 
+MicroEvent.mixin(BoardView);
+
 module.exports = BoardView;
 
-},{"./board":2,"./hex":4,"./hexTile":5,"./hexView":6}],4:[function(require,module,exports){
+},{"../lib/microevent.js":10,"./board":2,"./hex":4,"./hexTile":5,"./hexView":6}],4:[function(require,module,exports){
 
 var Class = require('../lib/class');
 
@@ -313,7 +342,7 @@ Hex.TYPE = {
 
 module.exports = Hex;
 
-},{"../lib/class":7}],5:[function(require,module,exports){
+},{"../lib/class":9}],5:[function(require,module,exports){
 
 var Hex = require('./hex');
 
@@ -414,7 +443,78 @@ var HexView = Class.extend({
 
 module.exports = HexView;
 
-},{"../lib/class":7}],7:[function(require,module,exports){
+},{"../lib/class":9}],7:[function(require,module,exports){
+
+var Class = require('../lib/class');
+
+var playerColors = ['#339933', '#336699', '#993333', '#999933', '#996633'];
+
+var Player = Class.extend({
+    init: function(config) {
+        config = config || {};
+        
+        if(!config.num) {
+            throw new Error('required argument missing');
+        }
+
+        this.num = config.num;
+        this.name = config.name || 'Player' + config.num;
+        this.color = playerColors[this.num -1];
+        this.tileCount = 8;
+    },
+
+    delete: function() {
+        // cleanup
+    }
+});
+
+module.exports = Player;
+
+},{"../lib/class":9}],8:[function(require,module,exports){
+
+var MicroEvent = require('../lib/microevent.js');
+
+var PlayerListView = function(config) {
+    config = config || {};
+
+    if(!config.el || !config.players) {
+        throw new Error('required argument missing');
+    }
+
+    this.el = document.getElementById(config.el);
+    this.players = config.players;
+
+    this.render = function() {
+        var html = '<h1>HEXAGO</h1>';
+        html += '<ul>';
+
+        this.players.forEach(function(player) {
+            html += '<li data-num="' + player.num + '">';
+            html += '<div class="color" style="background: ' + player.color + '"></div>';
+            html += '<div class="name">' + player.name + '</div>';
+            html += '<div class="tiles">' + player.tileCount + '</div>';
+            html += '</li>';
+        });
+
+        html += '</ul>';
+
+        this.el.innerHTML = html;
+
+        this.el.style.display = '';
+    }
+
+    this.updateTileCount = function(player) {
+        var el = this.el.querySelector('li[data-num="' + player.num + '"] .tiles');
+
+        if(el) {
+            el.innerHTML = player.tileCount;
+        }
+    }
+};
+
+module.exports = PlayerListView;
+
+},{"../lib/microevent.js":10}],9:[function(require,module,exports){
 /* Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.
@@ -483,5 +583,61 @@ module.exports = HexView;
 // })();
 
 module.exports = Class;
+
+},{}],10:[function(require,module,exports){
+/**
+ * MicroEvent - to make any js object an event emitter (server or browser)
+ * 
+ * - pure javascript - server compatible, browser compatible
+ * - dont rely on the browser doms
+ * - super simple - you get it immediatly, no mistery, no magic involved
+ *
+ * - create a MicroEventDebug with goodies to debug
+ *   - make it safer to use
+*/
+
+var MicroEvent	= function(){};
+MicroEvent.prototype	= {
+	bind	: function(event, fct){
+		this._events = this._events || {};
+		this._events[event] = this._events[event]	|| [];
+		this._events[event].push(fct);
+	},
+	unbind	: function(event, fct){
+		this._events = this._events || {};
+		if( event in this._events === false  )	return;
+		this._events[event].splice(this._events[event].indexOf(fct), 1);
+	},
+	trigger	: function(event /* , args... */){
+		this._events = this._events || {};
+		if( event in this._events === false  )	return;
+		for(var i = 0; i < this._events[event].length; i++){
+			this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+		}
+	}
+};
+
+/**
+ * mixin will delegate all MicroEvent.js function in the destination object
+ *
+ * - require('MicroEvent').mixin(Foobar) will make Foobar able to use MicroEvent
+ *
+ * @param {Object} the object which will support MicroEvent
+*/
+MicroEvent.mixin	= function(destObject){
+	var props	= ['bind', 'unbind', 'trigger'];
+	for(var i = 0; i < props.length; i ++){
+		if( typeof destObject === 'function' ){
+			destObject.prototype[props[i]]	= MicroEvent.prototype[props[i]];
+		}else{
+			destObject[props[i]] = MicroEvent.prototype[props[i]];
+		}
+	}
+}
+
+// export in common js
+if( typeof module !== "undefined" && ('exports' in module)){
+	module.exports	= MicroEvent;
+}
 
 },{}]},{},[1])

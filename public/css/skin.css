@@ -13,7 +13,6 @@ body {
 
 h1 {
     margin: 20px 0;
-    text-align: center;
     font-size: 32px;
     font-weight: bold;
 }
@@ -49,4 +48,29 @@ h2 {
 }
 #board polygon:hover {
     fill: #999;
+}
+
+#player-list {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    width: 200px;
+}
+#player-list h1 {
+    margin-bottom: 40px;
+}
+#player-list li {
+    background: #ddd;
+    line-height: 20px;
+    margin-bottom: 10px;
+}
+#player-list .color {
+    float: left;
+    height: 20px;
+    width: 20px;
+}
+#player-list .name {
+    float: left;
+    width: 150px;
+    padding-left: 10px;
 }

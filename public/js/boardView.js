@@ -1,5 +1,6 @@
 
-var SVG = require('svg'),
+var MicroEvent = require('../lib/microevent.js'),
+    SVG = require('svg'),
     Board = require('./board'),
     Hex = require('./hex'),
     HexTile = require('./hexTile'),
@@ -34,6 +35,8 @@ var BoardView = function(config) {
             this.hexTiles[hexHash(coords)] = undefined;
 
             this.board.removeHex(hex);
+
+            this.trigger('removeHex');
         } else if(hex === 0){
             hex = new HexTile(coords);
             this.board.setHexAt(hex, coords.q, coords.r);
@@ -49,6 +52,7 @@ var BoardView = function(config) {
 
             hexView.render();
             this.hexTiles[hexHash(coords)] = hexView;
+            this.trigger('addHex');
         }
 
     }.bind(this);
@@ -148,5 +152,7 @@ var BoardView = function(config) {
 
 
 };
+
+MicroEvent.mixin(BoardView);
 
 module.exports = BoardView;
