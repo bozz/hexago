@@ -1,8 +1,23 @@
 
-var BoardView = require('./boardView'),
+var io = require('socket.io-browserify'),
+    BoardView = require('./boardView'),
     Player = require('./player'),
     PlayerListView = require('./playerListView');
     // move = require('../lib/move.min.js');
+
+
+var socket = io.connect('http://localhost:3000');
+
+// socket.on('news', function(data){
+//     console.log(data);
+//     socket.emit('my other event', {my: 'data'});
+// });
+
+socket.on('new-game', function(data) {
+    console.log("new game: ", data.id);
+
+    move('#menu').set('opacity', 0).duration('0.3s').then(initGame).end();
+});
 
 
 var initGame = function() {
@@ -37,8 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     newGameButton.addEventListener('click', function(e) {
         newGameButton.disabled = true;
-        move('#menu').set('opacity', 0).duration('0.3s').then(initGame).end();
 
+        socket.emit('create-game', {my: 'data'});
     });
 
     console.log("fin.");
