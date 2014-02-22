@@ -5,10 +5,11 @@
     "private": false,
     "dependencies": {
         "express": "3.x",
-
-        "jquery": "2.1.x",
         "browserify-shim": "3.2.x",
         "socket.io": "0.9.x",
+        "resig-class": "0.1.x",
+
+        "jquery": "2.1.x",
         "socket.io-browserify": "0.9.x"
     },
     "devDependencies": {

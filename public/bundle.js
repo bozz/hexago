@@ -3766,37 +3766,45 @@ var socket = io.connect('http://localhost:3000');
 //     socket.emit('my other event', {my: 'data'});
 // });
 
+var game, player, opponent;
+
 socket.on('new-game', function(data) {
-    console.log("new game: ", data.id);
+    game = data;
+    console.log("new game: ", data);
 
     move('#menu').set('opacity', 0).duration('0.3s').then(initGame).end();
 });
 
 
 var initGame = function() {
-    var players = [],
-        activePlayer = new Player({num: 1});
+    var players = [];
 
-    players.push(activePlayer);
-    players.push(new Player({num: 2}));
+    if(game) {
+        player = new Player(game.player1);
+        players.push(player);
 
-    var playerListView = new PlayerListView({
-        el: 'player-list',
-        players: players
-    });
-    playerListView.render();
+        // players.push(new Player({num: 2}));
 
-    var boardView = new BoardView();
-    boardView.render();
+        var playerListView = new PlayerListView({
+            el: 'player-list',
+            players: players
+        });
+        playerListView.render();
 
-    boardView.bind('addHex', function() {
-        activePlayer.tileCount -= 1;
-        playerListView.updateTileCount(activePlayer);
-    });
-    boardView.bind('removeHex', function() {
-        activePlayer.tileCount += 1;
-        playerListView.updateTileCount(activePlayer);
-    });
+        var boardView = new BoardView({
+            boardHexes: game.boardHexes
+        });
+        boardView.render();
+    }
+
+    // boardView.bind('addHex', function() {
+    //     activePlayer.tileCount -= 1;
+    //     playerListView.updateTileCount(activePlayer);
+    // });
+    // boardView.bind('removeHex', function() {
+    //     activePlayer.tileCount += 1;
+    //     playerListView.updateTileCount(activePlayer);
+    // });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -3813,125 +3821,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-},{"./boardView":4,"./player":8,"./playerListView":9,"socket.io-browserify":1}],3:[function(require,module,exports){
-var Hex = require('./hex'),
-    HexTile = require('./hexTile');
-
-// using axial coordinates
-var Board = function(config) {
-
-    this.rows = 7; // needs to be uneven number
-
-    var N = Math.floor(this.rows*0.5),
-        boardHexes = [];
-        grid = [],
-
-    // currently only creates hexagon grids with uneven row numbers
-    this.initGrid = function() {
-
-        this.grid = [];
-
-        for(var i=0; i<this.rows; i++) {
-            this.grid.push([]);
-            for(var j=0; j<this.rows; j++) {
-                var tmp = i-N;
-                if((tmp<0 && j<Math.abs(tmp)) || (tmp>0 && j>=this.rows-tmp)) {
-                    this.grid[i].push(-1);
-                } else {
-                    this.grid[i].push(0);
-                }
-            }
-        }
-    }
-
-    this.init = function(config) {
-        var self = this,
-            config = {};
-
-        this.initGrid();
-
-        this.each(function(q, r, hex) {
-            config.q = q;
-            config.r = r;
-
-            switch(hex) {
-                case 1:
-                    self.setHexAt(new HexTile(config), q, r);
-                    break;
-                case 2:
-                    config.type = hex;
-                    self.setHexAt(new HexTile(config), q, r);
-                    break;
-                default:
-                    boardHexes.push(new Hex(config));
-                    // self.setHexAt(new Hex(config), q, r);
-            }
-        });
-    }
-
-    this.getBoardHexes = function() {
-        return boardHexes;
-    }
-
-    // get grid contents at specified coordinates
-    this.getHexAt = function(q, r) {
-        return this.grid[r+N][q+N];
-    }
-
-    this.setHexAt = function(hex, q, r) {
-        if(!hex || typeof q == "undefined" || typeof r == "undefined") {
-            throw new Error('required arguments missing');
-        }
-
-        var currentHex = this.getHexAt(q, r);
-        if(currentHex instanceof Hex){
-            currentHex.delete();
-        }
-
-        this.grid[r+N][q+N] = hex;
-    }
-
-    this.removeHex = function(hex) {
-        if(hex && hex instanceof Hex) {
-            hex.delete();
-            this.grid[hex.r+N][hex.q+N] = 0;
-        }
-    }
-
-    this.each = function(callback) {
-        var i, j, q, r;
-        for(i = 0; i<this.grid.length; i++) {
-            for(j = 0; j<this.grid[i].length; j++) {
-                if(this.grid[i][j] !== -1) {
-                    callback(j-N, i-N, this.grid[i][j]);
-
-                    var q = j-N;
-                    var r = i-N;
-                }
-            }
-        }
-    }
-
-    // get neighbors of specified coordinates
-    this.getNeighbors = function(q, r) {
-        // TODO...
-    }
-
-
-    // initialize
-    this.init();
-
-};
-
-module.exports = Board;
-
-},{"./hex":5,"./hexTile":6}],4:[function(require,module,exports){
+},{"./boardView":3,"./player":5,"./playerListView":6,"socket.io-browserify":1}],3:[function(require,module,exports){
 
 var MicroEvent = require('../lib/microevent.js'),
     SVG = (window.SVG),
-    Board = require('./board'),
-    Hex = require('./hex'),
-    HexTile = require('./hexTile'),
     HexView = require('./hexView');
 
 var BoardView = function(config) {
@@ -3943,11 +3836,12 @@ var BoardView = function(config) {
         domEl = config.el || 'board',
         svg = SVG(domEl).size(width, height),
 
+        boardHexes = config.boardHexes,
+
         xOffset = width*0.5,
         yOffset = height*0.5,
         sqrt3 = Math.sqrt(3);
 
-    this.board = new Board();
     this.hexTiles = {};
 
 
@@ -3956,32 +3850,32 @@ var BoardView = function(config) {
 
         var coords = this.pixelToHex(event.layerX, event.layerY);
 
-        var hex = this.board.getHexAt(coords.q, coords.r);
-        if(hex && hex instanceof Hex) {
-            var hexView = this.hexTiles[hexHash(coords)];
-            hexView.remove();
-            this.hexTiles[hexHash(coords)] = undefined;
+        // var hex = this.board.getHexAt(coords.q, coords.r);
+        // if(hex && hex instanceof Hex) {
+        //     var hexView = this.hexTiles[hexHash(coords)];
+        //     hexView.remove();
+        //     this.hexTiles[hexHash(coords)] = undefined;
 
-            this.board.removeHex(hex);
+        //     this.board.removeHex(hex);
 
-            this.trigger('removeHex');
-        } else if(hex === 0){
-            hex = new HexTile(coords);
-            this.board.setHexAt(hex, coords.q, coords.r);
+        //     this.trigger('removeHex');
+        // } else if(hex === 0){
+        //     hex = new HexTile(coords);
+        //     this.board.setHexAt(hex, coords.q, coords.r);
 
-            var pos = this.hexToPixel(coords.q, coords.r),
-                hexView = new HexView({
-                    svg: svg,
-                    hex: hex,
-                    x: pos.x,
-                    y: pos.y,
-                    size: hexSize
-                });
+        //     var pos = this.hexToPixel(coords.q, coords.r),
+        //         hexView = new HexView({
+        //             svg: svg,
+        //             hex: hex,
+        //             x: pos.x,
+        //             y: pos.y,
+        //             size: hexSize
+        //         });
 
-            hexView.render();
-            this.hexTiles[hexHash(coords)] = hexView;
-            this.trigger('addHex');
-        }
+        //     hexView.render();
+        //     this.hexTiles[hexHash(coords)] = hexView;
+        //     this.trigger('addHex');
+        // }
 
     }.bind(this);
 
@@ -4031,10 +3925,9 @@ var BoardView = function(config) {
 
     this.renderBoard = function() {
         var self = this,
-            hexes = this.board.getBoardHexes(),
             coords, hexView;
 
-        hexes.forEach(function(hex) {
+        boardHexes.forEach(function(hex) {
             coords = self.hexToPixel(hex.q, hex.r);
 
             hexView = new HexView({
@@ -4085,45 +3978,7 @@ MicroEvent.mixin(BoardView);
 
 module.exports = BoardView;
 
-},{"../lib/microevent.js":11,"./board":3,"./hex":5,"./hexTile":6,"./hexView":7}],5:[function(require,module,exports){
-
-var Class = require('../lib/class');
-
-var Hex = Class.extend({
-    init: function(config) {
-        this.config = config;
-        this.type = Hex.TYPE.empty;
-        this.q = config.q;
-        this.r = config.r;
-    },
-    delete: function() {
-        // cleanup
-    }
-});
-
-Hex.TYPE = {
-    empty: 0,
-    green: 1,
-    blue: 2
-}
-
-module.exports = Hex;
-
-},{"../lib/class":10}],6:[function(require,module,exports){
-
-var Hex = require('./hex');
-
-var HexTile = Hex.extend({
-    init: function(config) {
-        config = config || {};
-        this._super(config);
-        this.type = config.type || Hex.TYPE.green;
-    }
-});
-
-module.exports = HexTile;
-
-},{"./hex":5}],7:[function(require,module,exports){
+},{"../lib/microevent.js":8,"./hexView":4}],4:[function(require,module,exports){
 
 var Class = require('../lib/class');
 
@@ -4210,7 +4065,7 @@ var HexView = Class.extend({
 
 module.exports = HexView;
 
-},{"../lib/class":10}],8:[function(require,module,exports){
+},{"../lib/class":7}],5:[function(require,module,exports){
 
 var Class = require('../lib/class');
 
@@ -4219,14 +4074,13 @@ var playerColors = ['#339933', '#336699', '#993333', '#999933', '#996633'];
 var Player = Class.extend({
     init: function(config) {
         config = config || {};
-        
-        if(!config.num) {
-            throw new Error('required argument missing');
-        }
 
-        this.num = config.num;
-        this.name = config.name || 'Player' + config.num;
-        this.color = playerColors[this.num -1];
+        // if(!config.num) {
+        //     throw new Error('required argument missing');
+        // }
+
+        this.name = config; //config.name || 'Player' + config.num;
+        this.color = playerColors[0];
         this.tileCount = 8;
     },
 
@@ -4237,7 +4091,7 @@ var Player = Class.extend({
 
 module.exports = Player;
 
-},{"../lib/class":10}],9:[function(require,module,exports){
+},{"../lib/class":7}],6:[function(require,module,exports){
 
 var MicroEvent = require('../lib/microevent.js');
 
@@ -4281,7 +4135,7 @@ var PlayerListView = function(config) {
 
 module.exports = PlayerListView;
 
-},{"../lib/microevent.js":11}],10:[function(require,module,exports){
+},{"../lib/microevent.js":8}],7:[function(require,module,exports){
 /* Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.
@@ -4351,7 +4205,7 @@ module.exports = PlayerListView;
 
 module.exports = Class;
 
-},{}],11:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /**
  * MicroEvent - to make any js object an event emitter (server or browser)
  * 

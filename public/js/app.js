@@ -13,37 +13,45 @@ var socket = io.connect('http://localhost:3000');
 //     socket.emit('my other event', {my: 'data'});
 // });
 
+var game, player, opponent;
+
 socket.on('new-game', function(data) {
-    console.log("new game: ", data.id);
+    game = data;
+    console.log("new game: ", data);
 
     move('#menu').set('opacity', 0).duration('0.3s').then(initGame).end();
 });
 
 
 var initGame = function() {
-    var players = [],
-        activePlayer = new Player({num: 1});
+    var players = [];
 
-    players.push(activePlayer);
-    players.push(new Player({num: 2}));
+    if(game) {
+        player = new Player(game.player1);
+        players.push(player);
 
-    var playerListView = new PlayerListView({
-        el: 'player-list',
-        players: players
-    });
-    playerListView.render();
+        // players.push(new Player({num: 2}));
 
-    var boardView = new BoardView();
-    boardView.render();
+        var playerListView = new PlayerListView({
+            el: 'player-list',
+            players: players
+        });
+        playerListView.render();
 
-    boardView.bind('addHex', function() {
-        activePlayer.tileCount -= 1;
-        playerListView.updateTileCount(activePlayer);
-    });
-    boardView.bind('removeHex', function() {
-        activePlayer.tileCount += 1;
-        playerListView.updateTileCount(activePlayer);
-    });
+        var boardView = new BoardView({
+            boardHexes: game.boardHexes
+        });
+        boardView.render();
+    }
+
+    // boardView.bind('addHex', function() {
+    //     activePlayer.tileCount -= 1;
+    //     playerListView.updateTileCount(activePlayer);
+    // });
+    // boardView.bind('removeHex', function() {
+    //     activePlayer.tileCount += 1;
+    //     playerListView.updateTileCount(activePlayer);
+    // });
 }
 
 document.addEventListener('DOMContentLoaded', function() {

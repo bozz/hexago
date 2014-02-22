@@ -35,6 +35,6 @@ io.sockets.on('connection', function(socket) {
         });
         games.push(game);
 
-        socket.emit('new-game', {id: game.id, ngames: games.length});
+        socket.emit('new-game', game.toJson());
     });
 });

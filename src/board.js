@@ -54,7 +54,9 @@ var Board = function(config) {
     }
 
     this.getBoardHexes = function() {
-        return boardHexes;
+        return boardHexes.map(function(hex) {
+            return hex.toJson()
+        });
     }
 
     // get grid contents at specified coordinates

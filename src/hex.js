@@ -1,5 +1,5 @@
 
-var Class = require('../lib/class');
+var Class = require('resig-class');
 
 var Hex = Class.extend({
     init: function(config) {
@@ -10,6 +10,13 @@ var Hex = Class.extend({
     },
     delete: function() {
         // cleanup
+    },
+    toJson: function() {
+        return {
+            type: this.type,
+            q: this.q,
+            r: this.r
+        }
     }
 });
 

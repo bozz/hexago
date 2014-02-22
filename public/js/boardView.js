@@ -1,9 +1,6 @@
 
 var MicroEvent = require('../lib/microevent.js'),
     SVG = require('svg'),
-    Board = require('./board'),
-    Hex = require('./hex'),
-    HexTile = require('./hexTile'),
     HexView = require('./hexView');
 
 var BoardView = function(config) {
@@ -15,11 +12,12 @@ var BoardView = function(config) {
         domEl = config.el || 'board',
         svg = SVG(domEl).size(width, height),
 
+        boardHexes = config.boardHexes,
+
         xOffset = width*0.5,
         yOffset = height*0.5,
         sqrt3 = Math.sqrt(3);
 
-    this.board = new Board();
     this.hexTiles = {};
 
 
@@ -28,32 +26,32 @@ var BoardView = function(config) {
 
         var coords = this.pixelToHex(event.layerX, event.layerY);
 
-        var hex = this.board.getHexAt(coords.q, coords.r);
-        if(hex && hex instanceof Hex) {
-            var hexView = this.hexTiles[hexHash(coords)];
-            hexView.remove();
-            this.hexTiles[hexHash(coords)] = undefined;
+        // var hex = this.board.getHexAt(coords.q, coords.r);
+        // if(hex && hex instanceof Hex) {
+        //     var hexView = this.hexTiles[hexHash(coords)];
+        //     hexView.remove();
+        //     this.hexTiles[hexHash(coords)] = undefined;
 
-            this.board.removeHex(hex);
+        //     this.board.removeHex(hex);
 
-            this.trigger('removeHex');
-        } else if(hex === 0){
-            hex = new HexTile(coords);
-            this.board.setHexAt(hex, coords.q, coords.r);
+        //     this.trigger('removeHex');
+        // } else if(hex === 0){
+        //     hex = new HexTile(coords);
+        //     this.board.setHexAt(hex, coords.q, coords.r);
 
-            var pos = this.hexToPixel(coords.q, coords.r),
-                hexView = new HexView({
-                    svg: svg,
-                    hex: hex,
-                    x: pos.x,
-                    y: pos.y,
-                    size: hexSize
-                });
+        //     var pos = this.hexToPixel(coords.q, coords.r),
+        //         hexView = new HexView({
+        //             svg: svg,
+        //             hex: hex,
+        //             x: pos.x,
+        //             y: pos.y,
+        //             size: hexSize
+        //         });
 
-            hexView.render();
-            this.hexTiles[hexHash(coords)] = hexView;
-            this.trigger('addHex');
-        }
+        //     hexView.render();
+        //     this.hexTiles[hexHash(coords)] = hexView;
+        //     this.trigger('addHex');
+        // }
 
     }.bind(this);
 
@@ -103,10 +101,9 @@ var BoardView = function(config) {
 
     this.renderBoard = function() {
         var self = this,
-            hexes = this.board.getBoardHexes(),
             coords, hexView;
 
-        hexes.forEach(function(hex) {
+        boardHexes.forEach(function(hex) {
             coords = self.hexToPixel(hex.q, hex.r);
 
             hexView = new HexView({
