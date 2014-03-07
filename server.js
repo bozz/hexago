@@ -18,7 +18,9 @@ app.use('/', express.static(__dirname + '/public'));
 //     res.send('Hexago!');
 // });
 
-var games = [],
+var dummyNames = ['Alexander', 'Braveheart', 'Chuck', 'Dickins', 'Emerson', 'Felini', 'Ghandi', 'Hemingway', 'Ignaz', 'Janus'],
+    playerCounter = 0,
+    games = [],
     game;
 
 io.sockets.on('connection', function(socket) {
@@ -27,13 +29,21 @@ io.sockets.on('connection', function(socket) {
     //     console.log(data);
     // });
 
+    socket.emit('game-list', games.map(function(g) {
+        return g.toJson();
+    }));
+
     socket.on('create-game', function(data) {
         console.log(data, socket.id);
 
         game = new Game({
-            player1: socket.id
+            player1: {
+                name: dummyNames[playerCounter],
+                id: socket.id
+            }
         });
         games.push(game);
+        playerCounter += 1;
 
         socket.emit('new-game', game.toJson());
     });

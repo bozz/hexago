@@ -11,7 +11,7 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: ['public/js/**/*.js'],
+        files: ['public/js/**/*.js', 'public/templates/**/*.hogan'],
         tasks: ['browserify'],
         options: {
           spawn: false,

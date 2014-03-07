@@ -1,0 +1,6 @@
+
+{{#games}}
+<li>
+<button data-id="{{id}}">join</button> {{player1.name}}
+</li>
+{{/games}}

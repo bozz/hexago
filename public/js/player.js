@@ -11,7 +11,8 @@ var Player = Class.extend({
         //     throw new Error('required argument missing');
         // }
 
-        this.name = config; //config.name || 'Player' + config.num;
+        this.name = config.name; //config.name || 'Player' + config.num;
+        this.id = config.id;
         this.color = playerColors[0];
         this.tileCount = 8;
     },

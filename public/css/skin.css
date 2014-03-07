@@ -35,6 +35,12 @@ h2 {
     padding: 15px 30px;
     font-size: 16px;
 }
+#menu #game-list {
+    margin-top: 20px;
+}
+#menu #game-list li {
+    padding: 10px;
+}
 
 #board {
     margin: 0 auto;

@@ -2,7 +2,8 @@
 var io = require('socket.io-browserify'),
     BoardView = require('./boardView'),
     Player = require('./player'),
-    PlayerListView = require('./playerListView');
+    PlayerListView = require('./playerListView'),
+    gamesTemplate = require('../templates/games.hogan');
     // move = require('../lib/move.min.js');
 
 
@@ -14,6 +15,13 @@ var socket = io.connect('http://localhost:3000');
 // });
 
 var game, player, opponent;
+
+socket.on('game-list', function(data) {
+    console.log("game-list:", data);
+
+    var el = document.getElementById('game-list');
+    el.innerHTML = gamesTemplate.render({games: data});
+});
 
 socket.on('new-game', function(data) {
     game = data;
