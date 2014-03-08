@@ -1,0 +1,3 @@
+<h1>HEXAGO</h1>
+<button class="new-game">New Game</button>
+<ul id="game-list"></ul>

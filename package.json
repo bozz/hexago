@@ -9,6 +9,7 @@
         "resig-class": "0.1.x",
 
         "jquery": "2.1.x",
+        "backbone": "1.1.x",
         "hogan.js": "2.0.x",
         "socket.io-browserify": "0.9.x"
     },
@@ -25,6 +26,7 @@
         "svg": "public/lib/svg.min.js"
     },
     "browserify-shim": {
+        "jquery": "$",
         "svg": "global:SVG"
     },
     "browserify": {

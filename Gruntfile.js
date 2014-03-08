@@ -6,6 +6,9 @@ module.exports = function(grunt) {
       dist: {
         files: {
           'public/bundle.js': ['public/js/app.js']
+        },
+        options: {
+            alias: ['public/js/Workspace.js:Workspace', 'public/js/hx.js:hx']
         }
       }
     },

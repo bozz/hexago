@@ -1,5 +1,5 @@
 
-var MicroEvent = require('../lib/microevent.js'),
+var MicroEvent = require('../../lib/microevent.js'),
     SVG = require('svg'),
     HexView = require('./hexView');
 
@@ -9,7 +9,7 @@ var BoardView = function(config) {
     var width = config.width || 700,
         height = config.height || 600,
         hexSize = config.hexSize || 50,
-        domEl = config.el || 'board',
+        domEl = config.el || 'game',
         svg = SVG(domEl).size(width, height),
 
         boardHexes = config.boardHexes,

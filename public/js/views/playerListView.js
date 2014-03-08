@@ -1,5 +1,5 @@
 
-var MicroEvent = require('../lib/microevent.js');
+var MicroEvent = require('../../lib/microevent.js');
 
 var PlayerListView = function(config) {
     config = config || {};

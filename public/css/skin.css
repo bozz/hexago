@@ -21,7 +21,7 @@ h2 {
     font-size: 18px;
 }
 
-#menu {
+#lobby {
     position: absolute;
     left: 50%;
     right: 50%;
@@ -31,14 +31,14 @@ h2 {
     background: #ddd;
     text-align: center;
 }
-#menu button.new-game {
+#lobby button.new-game {
     padding: 15px 30px;
     font-size: 16px;
 }
-#menu #game-list {
+#lobby #game-list {
     margin-top: 20px;
 }
-#menu #game-list li {
+#lobby #game-list li {
     padding: 10px;
 }
 

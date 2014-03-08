@@ -1,5 +1,5 @@
 
-var Class = require('../lib/class');
+var Class = require('../../lib/class');
 
 // should hexegon be drawn with flat or pointy top?
 var flatTopped = false;
